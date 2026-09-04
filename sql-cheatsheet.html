@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="SQL Interview Cheat Sheet — Window Functions, CTEs, Joins, GROUP BY, Subqueries, Query Optimization, and Scenario-Based Questions.">
+<title>SQL Interview Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232736;
+    --border: #2e3348;
+    --text: #e2e4ed;
+    --text-dim: #8b8fa7;
+    --accent: #6c8aff;
+    --accent2: #ff6c8a;
+    --green: #4ade80;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --code-bg: #141720;
+    --tag-bg: rgba(108,138,255,0.12);
+    --sidebar-w: 260px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 1.25rem 0;
+    z-index: 100;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-logo {
+    padding: 0 1.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.3px;
+  }
+
+  .sidebar-group { padding: 0.5rem 0 0.25rem; }
+
+  .sidebar-group-title {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    padding: 0.5rem 1.25rem 0.35rem;
+    font-weight: 600;
+  }
+
+  .sidebar a {
+    display: block;
+    padding: 0.35rem 1.25rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .sidebar a:hover {
+    color: var(--text);
+    background: rgba(108,138,255,0.06);
+    border-left-color: var(--accent);
+  }
+  .sidebar a.active {
+    color: var(--accent);
+    background: rgba(108,138,255,0.08);
+    border-left-color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* ===== MAIN ===== */
+  .main {
+    margin-left: var(--sidebar-w);
+    padding: 2rem 2.5rem;
+    max-width: calc(1100px + var(--sidebar-w));
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    padding: 1.5rem 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+  header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header p { color: var(--text-dim); margin-top: 0.4rem; font-size: 0.9rem; }
+
+  .section {
+    margin-bottom: 3rem;
+    scroll-margin-top: 1.5rem;
+  }
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-title .num {
+    background: var(--accent);
+    color: var(--bg);
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Function Cards */
+  .func-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 1rem;
+  }
+  .func-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    transition: border-color 0.2s;
+  }
+  .func-card:hover { border-color: var(--accent); }
+  .func-card h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    color: var(--green);
+    margin-bottom: 0.3rem;
+  }
+  .func-card .desc { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 0.65rem; }
+
+  code, .code-block { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    overflow-x: auto;
+    color: var(--text);
+    line-height: 1.5;
+    white-space: pre;
+  }
+  .func-card .code-block { margin-bottom: 0.5rem; }
+
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--accent);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-right: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tag.warn { background: rgba(245,158,11,0.12); color: var(--orange); }
+  .tag.danger { background: rgba(239,68,68,0.12); color: var(--red); }
+  .tag.good { background: rgba(74,222,128,0.12); color: var(--green); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem; }
+  thead th {
+    background: var(--surface2);
+    color: var(--accent);
+    text-align: left;
+    padding: 0.6rem 0.9rem;
+    font-weight: 600;
+    border-bottom: 2px solid var(--accent);
+  }
+  tbody td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:hover { background: rgba(108,138,255,0.04); }
+  td code { background: var(--code-bg); padding: 2px 5px; border-radius: 4px; color: var(--green); font-size: 0.78rem; }
+
+  /* Callouts */
+  .callout { border-radius: 10px; padding: 1.15rem; margin-bottom: 1rem; border-left: 4px solid; }
+  .callout.trap { background: rgba(239,68,68,0.06); border-color: var(--red); }
+  .callout.tip { background: rgba(74,222,128,0.06); border-color: var(--green); }
+  .callout.info { background: rgba(108,138,255,0.06); border-color: var(--accent); }
+  .callout h4 { font-size: 0.88rem; margin-bottom: 0.4rem; }
+  .callout.trap h4 { color: var(--red); }
+  .callout.tip h4 { color: var(--green); }
+  .callout.info h4 { color: var(--accent); }
+  .callout p, .callout li { font-size: 0.82rem; color: var(--text-dim); }
+  .callout ul { padding-left: 1.25rem; margin-top: 0.3rem; }
+  .callout li { margin-bottom: 0.2rem; }
+
+  /* Calc cards */
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+    gap: 1rem;
+  }
+  .calc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.15rem;
+  }
+  .calc-card h4 {
+    font-size: 0.92rem;
+    font-weight: 600;
+    margin-bottom: 0.65rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* VS row */
+  .vs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .vs-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.15rem; }
+  .vs-box h4 { font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; margin-bottom: 0.45rem; }
+  .vs-box.left h4 { color: var(--accent); }
+  .vs-box.right h4 { color: var(--accent2); }
+  .desc { font-size: 0.82rem; color: var(--text-dim); }
+
+  /* Best practice grid */
+  .bp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1rem; }
+  .bp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.15rem; }
+  .bp-card h4 { font-family: 'JetBrains Mono', monospace; color: var(--green); font-size: 0.88rem; margin-bottom: 0.45rem; }
+  .bp-card ul { padding-left: 1.25rem; font-size: 0.82rem; color: var(--text-dim); }
+  .bp-card li { margin-bottom: 0.2rem; }
+
+  /* Golden */
+  .golden {
+    background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(108,138,255,0.08));
+    border: 1px solid var(--orange);
+    border-radius: 10px;
+    padding: 1.35rem;
+  }
+  .golden h4 { color: var(--orange); font-size: 0.95rem; margin-bottom: 0.65rem; }
+  .golden ul { padding-left: 1.25rem; font-size: 0.88rem; }
+  .golden li { margin-bottom: 0.3rem; color: var(--text); }
+
+  /* ===== Q&A CARDS ===== */
+  .qa-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+  .qa-q {
+    padding: 0.85rem 1.15rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .qa-q:hover { background: rgba(108,138,255,0.04); }
+  .qa-q .q-num {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    width: 22px;
+  }
+  .qa-q .arrow {
+    margin-left: auto;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .qa-card.open .qa-q .arrow { transform: rotate(180deg); }
+  .qa-a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .qa-card.open .qa-a { max-height: 2000px; }
+  .qa-a-inner {
+    padding: 0 1.15rem 1rem;
+    border-top: 1px solid var(--border);
+    padding-top: 0.85rem;
+  }
+  .qa-a-inner p { font-size: 0.84rem; color: var(--text-dim); margin-bottom: 0.5rem; line-height: 1.6; }
+  .qa-a-inner p strong { color: var(--text); }
+  .qa-a-inner .code-block { margin: 0.5rem 0; }
+
+  /* Part divider */
+  .part-divider {
+    text-align: center;
+    padding: 2rem 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+    margin-top: 1rem;
+  }
+  .part-divider h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .part-divider p { color: var(--text-dim); margin-top: 0.35rem; font-size: 0.88rem; }
+
+  /* ===== MOBILE ===== */
+  .burger {
+    display: none;
+    position: fixed;
+    top: 0.75rem; left: 0.75rem;
+    z-index: 200;
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .burger span { display: block; width: 18px; height: 2px; background: var(--text); border-radius: 1px; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 90; }
+
+  @media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.25s; }
+    .sidebar.open { transform: translateX(0); }
+    .overlay.open { display: block; }
+    .burger { display: flex; }
+    .main { margin-left: 0; padding: 3.5rem 1rem 2rem; }
+    .func-grid, .calc-grid, .bp-grid { grid-template-columns: 1fr; }
+    .vs-row { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- BURGER -->
+<div class="burger" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.overlay').classList.toggle('open');">
+  <span></span><span></span><span></span>
+</div>
+<div class="overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('open');"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<nav class="sidebar">
+  <div class="sidebar-logo">SQL Cheat Sheet</div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-title">Joins & Set Ops</div>
+    <a href="#s1">JOIN Types — Visual Guide</a>
+    <a href="#s2">JOIN Traps & Edge Cases</a>
+    <a href="#s3">UNION vs UNION ALL vs INTERSECT</a>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-title">Aggregation</div>
+    <a href="#s4">GROUP BY Deep Dive</a>
+    <a href="#s5">HAVING vs WHERE</a>
+    <a href="#s6">GROUP BY Traps</a>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-title">Window Functions</div>
+    <a href="#s7">Core Window Functions</a>
+    <a href="#s8">RANK vs DENSE_RANK vs ROW_NUMBER</a>
+    <a href="#s9">Running & Moving Calculations</a>
+    <a href="#s10">LEAD / LAG</a>
+    <a href="#s11">Window Function Q&A</a>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-title">Subqueries & CTEs</div>
+    <a href="#s12">Subquery Types</a>
+    <a href="#s13">CTEs — WITH Clause</a>
+    <a href="#s14">Correlated vs Non-Correlated</a>
+    <a href="#s15">CTE vs Subquery vs Temp Table</a>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-title">Query Execution</div>
+    <a href="#s16">Order of Execution</a>
+    <a href="#s17">Query Optimization</a>
+    <a href="#s18">Indexing Essentials</a>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-title">Tricky Concepts</div>
+    <a href="#s19">NULLs — The Silent Killer</a>
+    <a href="#s20">DELETE vs TRUNCATE vs DROP</a>
+    <a href="#s21">CASE Expressions</a>
+    <a href="#s22">String & Date Functions</a>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-group-title">Interview Q&A</div>
+    <a href="#s23">Scenario-Based Questions</a>
+    <a href="#s24">Conceptual Q&A</a>
+    <a href="#s25">Golden Rules</a>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+<div class="container">
+
+<header>
+  <h1>SQL Interview Cheat Sheet</h1>
+  <p>Mid-Level Focus — Window Functions, CTEs, Joins, Optimization & Scenario Questions</p>
+</header>
+
+<!-- ==================== JOINS & SET OPS ==================== -->
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <h2 class="section-title"><span class="num">1</span> JOIN Types — Visual Guide</h2>
+  <div class="func-grid">
+    <div class="func-card">
+      <h3>INNER JOIN</h3>
+      <p class="desc">Only matching rows from both tables.</p>
+      <div class="code-block">SELECT a.id, b.name
+FROM orders a
+INNER JOIN customers b
+  ON a.cust_id = b.id;</div>
+      <span class="tag">most common</span>
+    </div>
+    <div class="func-card">
+      <h3>LEFT JOIN</h3>
+      <p class="desc">All rows from left table + matches from right. NULLs where no match.</p>
+      <div class="code-block">SELECT a.id, b.name
+FROM orders a
+LEFT JOIN customers b
+  ON a.cust_id = b.id;</div>
+      <span class="tag good">keeps all left rows</span>
+    </div>
+    <div class="func-card">
+      <h3>RIGHT JOIN</h3>
+      <p class="desc">All rows from right table + matches from left. Rarely used — just flip the LEFT JOIN.</p>
+      <div class="code-block">SELECT a.id, b.name
+FROM customers b
+RIGHT JOIN orders a
+  ON a.cust_id = b.id;</div>
+      <span class="tag warn">avoid — use LEFT instead</span>
+    </div>
+    <div class="func-card">
+      <h3>FULL OUTER JOIN</h3>
+      <p class="desc">All rows from both tables. NULLs on both sides where no match.</p>
+      <div class="code-block">SELECT a.id, b.id
+FROM table_a a
+FULL OUTER JOIN table_b b
+  ON a.key = b.key;</div>
+      <span class="tag">reconciliation / gap analysis</span>
+    </div>
+    <div class="func-card">
+      <h3>CROSS JOIN</h3>
+      <p class="desc">Cartesian product — every row × every row. No ON clause.</p>
+      <div class="code-block">SELECT a.size, b.color
+FROM sizes a
+CROSS JOIN colors b;</div>
+      <span class="tag danger">row explosion — use carefully</span>
+    </div>
+    <div class="func-card">
+      <h3>SELF JOIN</h3>
+      <p class="desc">Table joined to itself. Common for hierarchies (employee → manager).</p>
+      <div class="code-block">SELECT e.name AS employee,
+       m.name AS manager
+FROM employees e
+LEFT JOIN employees m
+  ON e.manager_id = m.id;</div>
+      <span class="tag">hierarchy queries</span>
+    </div>
+  </div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <h2 class="section-title"><span class="num">2</span> JOIN Traps & Edge Cases</h2>
+
+  <div class="callout trap">
+    <h4>Trap 1: Duplicate rows from one-to-many JOINs</h4>
+    <p>If orders has 1 row and order_items has 5 rows for that order, INNER JOIN produces 5 rows — not 1. Aggregates (SUM, COUNT) on the orders side will be inflated.</p>
+    <div class="code-block">-- Wrong: SUM(order_total) is 5x the real value
+SELECT o.id, SUM(o.total)
+FROM orders o
+JOIN order_items i ON o.id = i.order_id
+GROUP BY o.id;
+
+-- Fix 1: Aggregate before joining
+SELECT o.id, o.total, sub.item_count
+FROM orders o
+JOIN (
+  SELECT order_id, COUNT(*) AS item_count
+  FROM order_items
+  GROUP BY order_id
+) sub ON o.id = sub.order_id;
+
+-- Fix 2: Use DISTINCT in aggregation
+SELECT o.id, MAX(o.total), COUNT(i.id)
+FROM orders o
+JOIN order_items i ON o.id = i.order_id
+GROUP BY o.id;</div>
+  </div>
+
+  <div class="callout trap">
+    <h4>Trap 2: NULLs in JOIN keys</h4>
+    <p>NULL = NULL evaluates to FALSE in SQL. Rows with NULL keys will <strong>never match</strong> in any JOIN. They silently disappear from INNER JOINs and appear as NULLs in LEFT JOINs.</p>
+  </div>
+
+  <div class="callout trap">
+    <h4>Trap 3: Accidental CROSS JOIN</h4>
+    <p>Forgetting the ON clause or using a comma-separated FROM with no WHERE produces a cartesian product. 10K × 10K = 100M rows.</p>
+    <div class="code-block">-- This is a CROSS JOIN (no join condition):
+SELECT * FROM orders, customers;
+
+-- Always use explicit JOIN syntax.</div>
+  </div>
+
+  <div class="callout tip">
+    <h4>Anti-Join Pattern: Find rows with NO match</h4>
+    <p>Customers who have never ordered:</p>
+    <div class="code-block">-- Method 1: LEFT JOIN + IS NULL (most readable)
+SELECT c.id
+FROM customers c
+LEFT JOIN orders o ON c.id = o.cust_id
+WHERE o.id IS NULL;
+
+-- Method 2: NOT EXISTS (often fastest)
+SELECT c.id
+FROM customers c
+WHERE NOT EXISTS (
+  SELECT 1 FROM orders o
+  WHERE o.cust_id = c.id
+);
+
+-- Method 3: NOT IN (careful with NULLs!)
+SELECT c.id
+FROM customers c
+WHERE c.id NOT IN (
+  SELECT cust_id FROM orders
+  WHERE cust_id IS NOT NULL  -- critical!
+);</div>
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <h2 class="section-title"><span class="num">3</span> UNION vs UNION ALL vs INTERSECT</h2>
+  <div class="func-grid">
+    <div class="func-card">
+      <h3>UNION</h3>
+      <p class="desc">Combines results, removes duplicates. Slower — requires sort/distinct step.</p>
+      <div class="code-block">SELECT city FROM customers
+UNION
+SELECT city FROM suppliers;</div>
+      <span class="tag warn">deduplication overhead</span>
+    </div>
+    <div class="func-card">
+      <h3>UNION ALL</h3>
+      <p class="desc">Combines results, keeps duplicates. Faster — no dedup step.</p>
+      <div class="code-block">SELECT city FROM customers
+UNION ALL
+SELECT city FROM suppliers;</div>
+      <span class="tag good">prefer this when dupes are ok</span>
+    </div>
+    <div class="func-card">
+      <h3>INTERSECT</h3>
+      <p class="desc">Only rows that appear in BOTH result sets.</p>
+      <div class="code-block">SELECT city FROM customers
+INTERSECT
+SELECT city FROM suppliers;</div>
+      <span class="tag">common values</span>
+    </div>
+    <div class="func-card">
+      <h3>EXCEPT / MINUS</h3>
+      <p class="desc">Rows in first set but NOT in second. EXCEPT (ANSI) = MINUS (Oracle).</p>
+      <div class="code-block">SELECT city FROM customers
+EXCEPT
+SELECT city FROM suppliers;</div>
+      <span class="tag">difference / gap finding</span>
+    </div>
+  </div>
+  <div class="callout info" style="margin-top:1rem;">
+    <h4>Rule: Column count and types must match</h4>
+    <p>All queries in a UNION/INTERSECT/EXCEPT must return the same number of columns with compatible types. Column names come from the first query.</p>
+  </div>
+</div>
+
+<!-- ==================== AGGREGATION ==================== -->
+
+<div class="part-divider">
+  <h1>Aggregation</h1>
+  <p>GROUP BY, HAVING, and the traps that catch candidates</p>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <h2 class="section-title"><span class="num">4</span> GROUP BY Deep Dive</h2>
+  <div class="func-grid">
+    <div class="func-card">
+      <h3>Basic Aggregation</h3>
+      <p class="desc">Every non-aggregated column in SELECT must be in GROUP BY.</p>
+      <div class="code-block">SELECT department, COUNT(*) AS cnt,
+       AVG(salary) AS avg_sal
+FROM employees
+GROUP BY department;</div>
+    </div>
+    <div class="func-card">
+      <h3>GROUP BY Multiple Columns</h3>
+      <p class="desc">Groups by the combination of all listed columns.</p>
+      <div class="code-block">SELECT department, job_title,
+       COUNT(*) AS cnt
+FROM employees
+GROUP BY department, job_title;</div>
+    </div>
+    <div class="func-card">
+      <h3>GROUPING SETS</h3>
+      <p class="desc">Multiple grouping levels in one query. Avoids multiple UNIONs.</p>
+      <div class="code-block">SELECT department, job_title,
+       SUM(salary)
+FROM employees
+GROUP BY GROUPING SETS (
+  (department, job_title),
+  (department),
+  ()  -- grand total
+);</div>
+      <span class="tag">advanced</span>
+    </div>
+    <div class="func-card">
+      <h3>ROLLUP &amp; CUBE</h3>
+      <p class="desc">ROLLUP = hierarchical subtotals. CUBE = all combinations.</p>
+      <div class="code-block">-- ROLLUP: dept → dept+title → grand
+GROUP BY ROLLUP(department, job_title)
+
+-- CUBE: every combination
+GROUP BY CUBE(department, job_title)</div>
+      <span class="tag">reporting subtotals</span>
+    </div>
+  </div>
+</div>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <h2 class="section-title"><span class="num">5</span> HAVING vs WHERE</h2>
+  <div class="vs-row">
+    <div class="vs-box left">
+      <h4>WHERE</h4>
+      <p class="desc">Filters <strong>rows before</strong> aggregation.</p>
+      <div class="code-block" style="margin-top:0.5rem;">-- Only active employees
+SELECT dept, AVG(salary)
+FROM employees
+WHERE status = 'active'
+GROUP BY dept;</div>
+    </div>
+    <div class="vs-box right">
+      <h4>HAVING</h4>
+      <p class="desc">Filters <strong>groups after</strong> aggregation.</p>
+      <div class="code-block" style="margin-top:0.5rem;">-- Only depts with 5+ people
+SELECT dept, COUNT(*)
+FROM employees
+GROUP BY dept
+HAVING COUNT(*) >= 5;</div>
+    </div>
+  </div>
+  <div class="callout info">
+    <h4>Interview tip: "Can you use WHERE with aggregate functions?"</h4>
+    <p>No. <code>WHERE SUM(salary) > 1000</code> is a syntax error. Aggregates can only be filtered with HAVING. WHERE runs before GROUP BY, so aggregates don't exist yet.</p>
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <h2 class="section-title"><span class="num">6</span> GROUP BY Traps</h2>
+
+  <div class="callout trap">
+    <h4>Trap 1: SELECT column not in GROUP BY</h4>
+    <p>MySQL allows this (picks arbitrary value). PostgreSQL, SQL Server, Snowflake reject it. Always include all non-aggregated columns in GROUP BY.</p>
+    <div class="code-block">-- Fails in most databases:
+SELECT department, employee_name, COUNT(*)
+FROM employees
+GROUP BY department;
+-- employee_name is not aggregated or grouped</div>
+  </div>
+
+  <div class="callout trap">
+    <h4>Trap 2: COUNT(*) vs COUNT(column)</h4>
+    <p><strong>COUNT(*)</strong> counts all rows including NULLs. <strong>COUNT(column)</strong> counts only non-NULL values. Big difference when column has NULLs.</p>
+    <div class="code-block">-- 100 rows, 20 have NULL email
+SELECT COUNT(*),         -- 100
+       COUNT(email),     -- 80
+       COUNT(DISTINCT email)  -- unique non-NULL
+FROM customers;</div>
+  </div>
+
+  <div class="callout trap">
+    <h4>Trap 3: AVG ignores NULLs</h4>
+    <p>Values: 10, 20, NULL. AVG = 15 (not 10). NULL rows are excluded from both numerator and denominator. If you want NULLs treated as 0, use COALESCE first.</p>
+    <div class="code-block">-- Treating NULLs as 0:
+AVG(COALESCE(bonus, 0))</div>
+  </div>
+</div>
+
+<!-- ==================== WINDOW FUNCTIONS ==================== -->
+
+<div class="part-divider">
+  <h1>Window Functions</h1>
+  <p>The #1 most-tested topic in mid-level SQL interviews</p>
+</div>
+
+<!-- S7 -->
+<div class="section" id="s7">
+  <h2 class="section-title"><span class="num">7</span> Core Window Functions</h2>
+
+  <div class="callout info">
+    <h4>Anatomy of a Window Function</h4>
+    <div class="code-block">function_name(expression)
+  OVER (
+    PARTITION BY col1, col2    -- optional: groups
+    ORDER BY col3              -- optional: sort
+    ROWS/RANGE BETWEEN ...     -- optional: frame
+  )</div>
+    <p style="margin-top:0.5rem;"><strong>PARTITION BY</strong> = GROUP BY but without collapsing rows. <strong>ORDER BY</strong> = sort within partition. <strong>Frame</strong> = which rows the function sees.</p>
+  </div>
+
+  <table>
+    <thead><tr><th>Function</th><th>Purpose</th><th>Needs ORDER BY?</th></tr></thead>
+    <tbody>
+      <tr><td><code>ROW_NUMBER()</code></td><td>Unique sequential number per partition</td><td>Yes</td></tr>
+      <tr><td><code>RANK()</code></td><td>Rank with gaps on ties</td><td>Yes</td></tr>
+      <tr><td><code>DENSE_RANK()</code></td><td>Rank without gaps on ties</td><td>Yes</td></tr>
+      <tr><td><code>NTILE(n)</code></td><td>Split into n equal buckets</td><td>Yes</td></tr>
+      <tr><td><code>LAG(col, n)</code></td><td>Value from n rows before</td><td>Yes</td></tr>
+      <tr><td><code>LEAD(col, n)</code></td><td>Value from n rows after</td><td>Yes</td></tr>
+      <tr><td><code>FIRST_VALUE(col)</code></td><td>First value in window frame</td><td>Yes</td></tr>
+      <tr><td><code>LAST_VALUE(col)</code></td><td>Last value in window frame</td><td>Yes</td></tr>
+      <tr><td><code>SUM() OVER()</code></td><td>Running / partition sum</td><td>Optional</td></tr>
+      <tr><td><code>AVG() OVER()</code></td><td>Running / partition average</td><td>Optional</td></tr>
+      <tr><td><code>COUNT() OVER()</code></td><td>Running / partition count</td><td>Optional</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- S8 -->
+<div class="section" id="s8">
+  <h2 class="section-title"><span class="num">8</span> RANK vs DENSE_RANK vs ROW_NUMBER</h2>
+
+  <table>
+    <thead><tr><th>Sales</th><th>ROW_NUMBER</th><th>RANK</th><th>DENSE_RANK</th></tr></thead>
+    <tbody>
+      <tr><td>500</td><td>1</td><td>1</td><td>1</td></tr>
+      <tr><td>400</td><td>2</td><td>2</td><td>2</td></tr>
+      <tr><td>400</td><td>3</td><td>2</td><td>2</td></tr>
+      <tr><td>300</td><td>4</td><td><strong style="color:var(--orange)">4</strong></td><td><strong style="color:var(--green)">3</strong></td></tr>
+    </tbody>
+  </table>
+
+  <div class="code-block">SELECT employee, sales,
+  ROW_NUMBER() OVER (ORDER BY sales DESC) AS rn,
+  RANK()       OVER (ORDER BY sales DESC) AS rnk,
+  DENSE_RANK() OVER (ORDER BY sales DESC) AS drnk
+FROM sales_data;</div>
+
+  <div class="callout info" style="margin-top:1rem;">
+    <h4>When to use which?</h4>
+    <ul>
+      <li><strong>ROW_NUMBER:</strong> Deduplication (pick 1 row per group), pagination</li>
+      <li><strong>RANK:</strong> Competition-style ranking (skip positions after ties)</li>
+      <li><strong>DENSE_RANK:</strong> Top-N queries where you want N distinct values, not N rows</li>
+    </ul>
+  </div>
+</div>
+
+<!-- S9 -->
+<div class="section" id="s9">
+  <h2 class="section-title"><span class="num">9</span> Running & Moving Calculations</h2>
+
+  <div class="calc-grid">
+    <div class="calc-card">
+      <h4>Running Total</h4>
+      <div class="code-block">SELECT order_date, amount,
+  SUM(amount) OVER (
+    ORDER BY order_date
+    ROWS BETWEEN UNBOUNDED PRECEDING
+         AND CURRENT ROW
+  ) AS running_total
+FROM orders;</div>
+      <p class="desc" style="margin-top:0.5rem;">Default frame when ORDER BY is present. Cumulative sum from first row to current.</p>
+    </div>
+    <div class="calc-card">
+      <h4>3-Day Moving Average</h4>
+      <div class="code-block">SELECT order_date, amount,
+  AVG(amount) OVER (
+    ORDER BY order_date
+    ROWS BETWEEN 2 PRECEDING
+         AND CURRENT ROW
+  ) AS moving_avg_3
+FROM orders;</div>
+      <p class="desc" style="margin-top:0.5rem;">Current row + 2 previous = 3-row window. First 2 rows average what's available.</p>
+    </div>
+    <div class="calc-card">
+      <h4>Partition Running Total</h4>
+      <div class="code-block">SELECT department, order_date, amount,
+  SUM(amount) OVER (
+    PARTITION BY department
+    ORDER BY order_date
+  ) AS dept_running_total
+FROM orders;</div>
+      <p class="desc" style="margin-top:0.5rem;">Running total resets per department.</p>
+    </div>
+    <div class="calc-card">
+      <h4>Percent of Total</h4>
+      <div class="code-block">SELECT department, amount,
+  amount * 100.0 / SUM(amount) OVER ()
+    AS pct_of_total,
+  amount * 100.0 / SUM(amount) OVER (
+    PARTITION BY department
+  ) AS pct_of_dept
+FROM orders;</div>
+      <p class="desc" style="margin-top:0.5rem;">Empty OVER() = entire result set. PARTITION BY = within group.</p>
+    </div>
+  </div>
+
+  <div class="callout trap" style="margin-top:1rem;">
+    <h4>Frame Trap: ROWS vs RANGE</h4>
+    <p><strong>ROWS:</strong> Physical row count. <strong>RANGE:</strong> Logical value range — ties get the same frame. Default with ORDER BY is <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code>, which includes all ties. For a strict running total, always specify ROWS explicitly.</p>
+  </div>
+</div>
+
+<!-- S10 -->
+<div class="section" id="s10">
+  <h2 class="section-title"><span class="num">10</span> LEAD / LAG</h2>
+
+  <div class="vs-row">
+    <div class="vs-box left">
+      <h4>LAG(col, offset, default)</h4>
+      <p class="desc">Looks <strong>backward</strong> (previous rows).</p>
+      <div class="code-block" style="margin-top:0.5rem;">-- Previous month's sales
+SELECT month, sales,
+  LAG(sales, 1, 0) OVER (
+    ORDER BY month
+  ) AS prev_month_sales
+FROM monthly_sales;</div>
+    </div>
+    <div class="vs-box right">
+      <h4>LEAD(col, offset, default)</h4>
+      <p class="desc">Looks <strong>forward</strong> (next rows).</p>
+      <div class="code-block" style="margin-top:0.5rem;">-- Next month's sales
+SELECT month, sales,
+  LEAD(sales, 1, 0) OVER (
+    ORDER BY month
+  ) AS next_month_sales
+FROM monthly_sales;</div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <h4>Classic Interview Pattern: Month-over-Month Growth</h4>
+    <div class="code-block">SELECT month, sales,
+  LAG(sales) OVER (ORDER BY month) AS prev,
+  ROUND(
+    (sales - LAG(sales) OVER (ORDER BY month))
+    * 100.0
+    / NULLIF(LAG(sales) OVER (ORDER BY month), 0)
+  , 2) AS mom_growth_pct
+FROM monthly_sales;</div>
+    <p style="margin-top:0.3rem;">NULLIF prevents division by zero when previous month sales = 0.</p>
+  </div>
+</div>
+
+<!-- S11 -->
+<div class="section" id="s11">
+  <h2 class="section-title"><span class="num">11</span> Window Function Q&A</h2>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">01</span> Can you use window functions in WHERE? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>No.</strong> Window functions execute after WHERE in the order of operations. You must wrap them in a subquery or CTE.</p>
+      <div class="code-block">-- Wrong:
+SELECT * FROM sales
+WHERE ROW_NUMBER() OVER (ORDER BY amount DESC) <= 5;
+
+-- Correct:
+WITH ranked AS (
+  SELECT *, ROW_NUMBER() OVER (ORDER BY amount DESC) AS rn
+  FROM sales
+)
+SELECT * FROM ranked WHERE rn <= 5;</div>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">02</span> Difference between window function and GROUP BY? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>GROUP BY</strong> collapses rows — one output row per group. You lose row-level detail.</p>
+      <p><strong>Window functions</strong> keep all rows and add the calculation as a new column. You keep row-level detail alongside the aggregate.</p>
+      <div class="code-block">-- GROUP BY: 3 departments → 3 rows
+SELECT dept, AVG(salary) FROM emp GROUP BY dept;
+
+-- Window: all employee rows kept, avg added
+SELECT emp_name, dept, salary,
+  AVG(salary) OVER (PARTITION BY dept) AS dept_avg
+FROM emp;</div>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">03</span> What is the default window frame? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p>Depends on whether ORDER BY is present:</p>
+      <p><strong>With ORDER BY:</strong> <code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> — this includes all rows with the same ORDER BY value (ties). Catches people off guard with running sums.</p>
+      <p><strong>Without ORDER BY:</strong> <code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code> — the entire partition.</p>
+      <p>If you want a strict physical-row running total, always specify <code>ROWS</code> explicitly.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">04</span> Deduplicate rows — pick latest per customer? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <div class="code-block">WITH ranked AS (
+  SELECT *,
+    ROW_NUMBER() OVER (
+      PARTITION BY customer_id
+      ORDER BY order_date DESC
+    ) AS rn
+  FROM orders
+)
+SELECT * FROM ranked WHERE rn = 1;</div>
+      <p>ROW_NUMBER guarantees exactly 1 row per customer. RANK/DENSE_RANK could return multiple if dates tie.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">05</span> Top N per group? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p>Top 3 highest-paid employees per department:</p>
+      <div class="code-block">WITH ranked AS (
+  SELECT *,
+    DENSE_RANK() OVER (
+      PARTITION BY department
+      ORDER BY salary DESC
+    ) AS dr
+  FROM employees
+)
+SELECT * FROM ranked WHERE dr <= 3;</div>
+      <p><strong>DENSE_RANK</strong> ensures you get all ties at position 3 (could be more than 3 rows). Use <strong>ROW_NUMBER</strong> if you want exactly 3 rows regardless of ties.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">06</span> FIRST_VALUE / LAST_VALUE trap? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>FIRST_VALUE</strong> works as expected. <strong>LAST_VALUE</strong> often returns the current row — not the actual last row. Why? Default frame is <code>...AND CURRENT ROW</code>, so the "last" value is always the current row.</p>
+      <div class="code-block">-- Fix: extend frame to end of partition
+LAST_VALUE(sales) OVER (
+  ORDER BY month
+  ROWS BETWEEN UNBOUNDED PRECEDING
+       AND UNBOUNDED FOLLOWING
+)</div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ==================== SUBQUERIES & CTEs ==================== -->
+
+<div class="part-divider">
+  <h1>Subqueries & CTEs</h1>
+  <p>Structuring complex queries cleanly</p>
+</div>
+
+<!-- S12 -->
+<div class="section" id="s12">
+  <h2 class="section-title"><span class="num">12</span> Subquery Types</h2>
+  <div class="func-grid">
+    <div class="func-card">
+      <h3>Scalar Subquery</h3>
+      <p class="desc">Returns a single value. Used in SELECT, WHERE, or HAVING.</p>
+      <div class="code-block">SELECT name, salary,
+  salary - (SELECT AVG(salary) FROM emp)
+    AS diff_from_avg
+FROM emp;</div>
+    </div>
+    <div class="func-card">
+      <h3>Row Subquery</h3>
+      <p class="desc">Returns a single row with multiple columns.</p>
+      <div class="code-block">SELECT * FROM emp
+WHERE (dept, salary) = (
+  SELECT dept, MAX(salary)
+  FROM emp WHERE dept = 'Sales'
+);</div>
+    </div>
+    <div class="func-card">
+      <h3>Table Subquery (Derived Table)</h3>
+      <p class="desc">Returns a result set. Used in FROM — must be aliased.</p>
+      <div class="code-block">SELECT d.dept, d.avg_sal
+FROM (
+  SELECT dept, AVG(salary) AS avg_sal
+  FROM emp GROUP BY dept
+) d
+WHERE d.avg_sal > 50000;</div>
+    </div>
+    <div class="func-card">
+      <h3>EXISTS Subquery</h3>
+      <p class="desc">Returns TRUE/FALSE. Checks for existence — doesn't return data.</p>
+      <div class="code-block">SELECT c.name
+FROM customers c
+WHERE EXISTS (
+  SELECT 1 FROM orders o
+  WHERE o.cust_id = c.id
+    AND o.amount > 1000
+);</div>
+      <span class="tag good">often fastest for existence checks</span>
+    </div>
+  </div>
+</div>
+
+<!-- S13 -->
+<div class="section" id="s13">
+  <h2 class="section-title"><span class="num">13</span> CTEs — WITH Clause</h2>
+
+  <div class="calc-grid">
+    <div class="calc-card">
+      <h4>Basic CTE</h4>
+      <div class="code-block">WITH dept_stats AS (
+  SELECT department,
+         AVG(salary) AS avg_sal,
+         COUNT(*) AS headcount
+  FROM employees
+  GROUP BY department
+)
+SELECT d.department, d.avg_sal
+FROM dept_stats d
+WHERE d.headcount >= 5;</div>
+    </div>
+    <div class="calc-card">
+      <h4>Multiple CTEs</h4>
+      <div class="code-block">WITH
+  orders_summary AS (
+    SELECT cust_id, SUM(amount) AS total
+    FROM orders GROUP BY cust_id
+  ),
+  high_value AS (
+    SELECT cust_id, total
+    FROM orders_summary
+    WHERE total > 10000
+  )
+SELECT c.name, h.total
+FROM customers c
+JOIN high_value h ON c.id = h.cust_id;</div>
+    </div>
+    <div class="calc-card">
+      <h4>Recursive CTE</h4>
+      <div class="code-block">-- Employee hierarchy (org chart)
+WITH RECURSIVE org AS (
+  -- Anchor: top-level (no manager)
+  SELECT id, name, manager_id, 1 AS lvl
+  FROM employees
+  WHERE manager_id IS NULL
+
+  UNION ALL
+
+  -- Recursive: each level down
+  SELECT e.id, e.name, e.manager_id, o.lvl + 1
+  FROM employees e
+  JOIN org o ON e.manager_id = o.id
+)
+SELECT * FROM org ORDER BY lvl;</div>
+      <span class="tag" style="margin-top:0.5rem;">hierarchy / tree traversal</span>
+    </div>
+    <div class="calc-card">
+      <h4>Recursive CTE: Running Sequence</h4>
+      <div class="code-block">-- Generate numbers 1 to 100
+WITH RECURSIVE nums AS (
+  SELECT 1 AS n
+  UNION ALL
+  SELECT n + 1 FROM nums WHERE n < 100
+)
+SELECT n FROM nums;</div>
+      <p class="desc" style="margin-top:0.5rem;">Useful for generating date series, filling gaps, or testing.</p>
+    </div>
+  </div>
+</div>
+
+<!-- S14 -->
+<div class="section" id="s14">
+  <h2 class="section-title"><span class="num">14</span> Correlated vs Non-Correlated Subqueries</h2>
+  <div class="vs-row">
+    <div class="vs-box left">
+      <h4>Non-Correlated</h4>
+      <p class="desc">Inner query runs <strong>once</strong>. Independent of outer query.</p>
+      <div class="code-block" style="margin-top:0.5rem;">SELECT * FROM emp
+WHERE salary > (
+  SELECT AVG(salary) FROM emp
+);</div>
+      <p class="desc" style="margin-top:0.5rem;">The subquery doesn't reference the outer query. Runs once, result reused for every outer row.</p>
+    </div>
+    <div class="vs-box right">
+      <h4>Correlated</h4>
+      <p class="desc">Inner query runs <strong>once per outer row</strong>. References outer query.</p>
+      <div class="code-block" style="margin-top:0.5rem;">SELECT * FROM emp e
+WHERE salary > (
+  SELECT AVG(salary) FROM emp
+  WHERE dept = e.dept
+);</div>
+      <p class="desc" style="margin-top:0.5rem;">Notice <code>e.dept</code> — inner query depends on outer row. Runs for each employee. Slower on large tables.</p>
+    </div>
+  </div>
+</div>
+
+<!-- S15 -->
+<div class="section" id="s15">
+  <h2 class="section-title"><span class="num">15</span> CTE vs Subquery vs Temp Table</h2>
+  <table>
+    <thead><tr><th>Aspect</th><th>CTE</th><th>Subquery</th><th>Temp Table</th></tr></thead>
+    <tbody>
+      <tr><td>Scope</td><td>Single query</td><td>Single query</td><td>Entire session</td></tr>
+      <tr><td>Readability</td><td><strong style="color:var(--green)">Best</strong></td><td>Moderate</td><td>Moderate</td></tr>
+      <tr><td>Reusable in same query</td><td>Yes — reference multiple times</td><td>No — must repeat or nest</td><td>Yes</td></tr>
+      <tr><td>Materialized?</td><td>Usually not (optimizer inlines)</td><td>No</td><td>Yes — stored on disk</td></tr>
+      <tr><td>Recursive support</td><td>Yes</td><td>No</td><td>No</td></tr>
+      <tr><td>Best for</td><td>Complex readable queries</td><td>Simple one-off filters</td><td>Large intermediate results, multi-step ETL</td></tr>
+    </tbody>
+  </table>
+  <div class="callout info">
+    <h4>Interview note: CTEs are NOT always faster</h4>
+    <p>CTEs are about <strong>readability</strong>, not performance. Most engines inline the CTE into the main query — same execution plan as a subquery. If you reference a CTE multiple times and it's expensive, the engine may re-execute it each time. In that case, materialize into a temp table.</p>
+  </div>
+</div>
+
+<!-- ==================== QUERY EXECUTION ==================== -->
+
+<div class="part-divider">
+  <h1>Query Execution & Optimization</h1>
+  <p>How SQL actually runs — and how to make it faster</p>
+</div>
+
+<!-- S16 -->
+<div class="section" id="s16">
+  <h2 class="section-title"><span class="num">16</span> SQL Order of Execution</h2>
+
+  <div class="callout info">
+    <h4>SQL does NOT execute top-to-bottom. Actual order:</h4>
+    <div class="code-block">1. FROM / JOIN        -- identify tables, join them
+2. WHERE              -- filter rows
+3. GROUP BY           -- aggregate into groups
+4. HAVING             -- filter groups
+5. SELECT             -- evaluate expressions, aliases
+6. DISTINCT           -- remove duplicates
+7. ORDER BY           -- sort results
+8. LIMIT / OFFSET     -- paginate</div>
+  </div>
+
+  <div class="callout trap">
+    <h4>Why this matters in interviews:</h4>
+    <ul>
+      <li>You <strong>can't</strong> use a SELECT alias in WHERE — WHERE runs before SELECT</li>
+      <li>You <strong>can</strong> use a SELECT alias in ORDER BY — ORDER BY runs after SELECT</li>
+      <li>You <strong>can't</strong> use window functions in WHERE — they run during SELECT</li>
+      <li>HAVING can use aggregate functions — GROUP BY has already run</li>
+      <li>LIMIT runs last — so ORDER BY + LIMIT is correct for "Top N"</li>
+    </ul>
+  </div>
+</div>
+
+<!-- S17 -->
+<div class="section" id="s17">
+  <h2 class="section-title"><span class="num">17</span> Query Optimization</h2>
+
+  <div class="bp-grid">
+    <div class="bp-card">
+      <h4>SELECT Only What You Need</h4>
+      <ul>
+        <li>Avoid <code>SELECT *</code> — forces full row reads</li>
+        <li>Name specific columns — helps index-only scans</li>
+        <li>Especially in subqueries: <code>EXISTS (SELECT 1 ...)</code></li>
+      </ul>
+    </div>
+    <div class="bp-card">
+      <h4>Filter Early</h4>
+      <ul>
+        <li>Put conditions in WHERE, not HAVING</li>
+        <li>Filter before JOINs when possible</li>
+        <li>Use LIMIT during development</li>
+      </ul>
+    </div>
+    <div class="bp-card">
+      <h4>JOIN Optimization</h4>
+      <ul>
+        <li>Join on indexed columns</li>
+        <li>Smaller table first in joins (query planner usually handles this)</li>
+        <li>Avoid functions on join keys: <code>ON UPPER(a.name) = UPPER(b.name)</code> kills indexes</li>
+      </ul>
+    </div>
+    <div class="bp-card">
+      <h4>Avoid These Anti-Patterns</h4>
+      <ul>
+        <li><code>WHERE YEAR(date_col) = 2026</code> — wrapping column in function prevents index use</li>
+        <li><code>WHERE col LIKE '%text%'</code> — leading wildcard = full scan</li>
+        <li><code>WHERE col != 'value'</code> — negation often skips indexes</li>
+        <li>Implicit type conversions — comparing varchar to int</li>
+      </ul>
+    </div>
+    <div class="bp-card">
+      <h4>EXPLAIN / EXPLAIN ANALYZE</h4>
+      <ul>
+        <li>Read the execution plan before optimizing</li>
+        <li>Look for: Seq Scan (full scan), Nested Loop (slow on large sets), Sort (memory pressure)</li>
+        <li>EXPLAIN = plan only. EXPLAIN ANALYZE = runs query + shows actual times</li>
+      </ul>
+    </div>
+    <div class="bp-card">
+      <h4>Use UNION ALL over UNION</h4>
+      <ul>
+        <li>UNION = sort + deduplicate. Expensive.</li>
+        <li>UNION ALL = just concatenate. Fast.</li>
+        <li>Only use UNION when you specifically need deduplication</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- S18 -->
+<div class="section" id="s18">
+  <h2 class="section-title"><span class="num">18</span> Indexing Essentials</h2>
+
+  <div class="func-grid">
+    <div class="func-card">
+      <h3>What Is an Index?</h3>
+      <p class="desc">A data structure (usually B-tree) that speeds up lookups. Like a book's index — jump to the page instead of scanning every page.</p>
+      <div class="code-block">CREATE INDEX idx_orders_cust
+  ON orders(customer_id);</div>
+    </div>
+    <div class="func-card">
+      <h3>Clustered vs Non-Clustered</h3>
+      <p class="desc"><strong>Clustered:</strong> Physically reorders table data. One per table (usually the PK).<br><strong>Non-Clustered:</strong> Separate structure pointing to data. Multiple allowed.</p>
+      <span class="tag">SQL Server / MySQL terminology</span>
+    </div>
+    <div class="func-card">
+      <h3>Composite Index</h3>
+      <p class="desc">Index on multiple columns. Column order matters — follows the leftmost prefix rule.</p>
+      <div class="code-block">CREATE INDEX idx_comp
+  ON orders(customer_id, order_date);
+
+-- Uses index:
+WHERE customer_id = 5
+WHERE customer_id = 5 AND order_date > '...'
+
+-- Does NOT use index:
+WHERE order_date > '...'  -- skips first column</div>
+    </div>
+    <div class="func-card">
+      <h3>When NOT to Index</h3>
+      <p class="desc">Indexes slow down writes (INSERT/UPDATE/DELETE). Don't index:</p>
+      <ul style="font-size:0.82rem;color:var(--text-dim);padding-left:1.25rem;margin-top:0.3rem;">
+        <li>Low-cardinality columns (boolean, status with 3 values)</li>
+        <li>Tables with heavy write loads</li>
+        <li>Small tables (full scan is faster than index lookup)</li>
+        <li>Columns rarely used in WHERE/JOIN/ORDER BY</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TRICKY CONCEPTS ==================== -->
+
+<div class="part-divider">
+  <h1>Tricky Concepts</h1>
+  <p>NULLs, CASE, and the things that trip people up</p>
+</div>
+
+<!-- S19 -->
+<div class="section" id="s19">
+  <h2 class="section-title"><span class="num">19</span> NULLs — The Silent Killer</h2>
+
+  <div class="callout trap">
+    <h4>NULL is not a value — it's the absence of a value</h4>
+    <div class="code-block">-- All of these return NULL (not TRUE or FALSE):
+NULL = NULL     → NULL
+NULL != NULL    → NULL
+NULL > 5        → NULL
+NULL + 10       → NULL
+NULL = ''       → NULL  (NULL is not empty string)</div>
+  </div>
+
+  <table>
+    <thead><tr><th>Scenario</th><th>Behavior</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><code>WHERE col = NULL</code></td><td>Returns nothing (always NULL)</td><td><code>WHERE col IS NULL</code></td></tr>
+      <tr><td><code>WHERE col != 'X'</code></td><td>Excludes NULLs silently</td><td><code>WHERE col != 'X' OR col IS NULL</code></td></tr>
+      <tr><td><code>NOT IN (..., NULL)</code></td><td>Returns empty set</td><td>Use <code>NOT EXISTS</code> or filter NULLs</td></tr>
+      <tr><td><code>COUNT(col)</code></td><td>Skips NULLs</td><td><code>COUNT(*)</code> to count all rows</td></tr>
+      <tr><td><code>AVG(col)</code></td><td>Ignores NULLs in count</td><td><code>AVG(COALESCE(col, 0))</code></td></tr>
+      <tr><td><code>ORDER BY col</code></td><td>NULLs sort first or last (DB-dependent)</td><td><code>ORDER BY col NULLS LAST</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <h4>NULL-safe functions</h4>
+    <div class="code-block">COALESCE(a, b, c)     -- first non-NULL value
+NULLIF(a, b)          -- returns NULL if a = b (division by zero guard)
+IFNULL(a, b)          -- MySQL: same as COALESCE with 2 args
+NVL(a, b)             -- Oracle: same as IFNULL
+IS DISTINCT FROM      -- NULL-safe equality (PostgreSQL)</div>
+  </div>
+</div>
+
+<!-- S20 -->
+<div class="section" id="s20">
+  <h2 class="section-title"><span class="num">20</span> DELETE vs TRUNCATE vs DROP</h2>
+  <table>
+    <thead><tr><th>Aspect</th><th>DELETE</th><th>TRUNCATE</th><th>DROP</th></tr></thead>
+    <tbody>
+      <tr><td>What it does</td><td>Removes rows (with WHERE)</td><td>Removes ALL rows</td><td>Removes entire table</td></tr>
+      <tr><td>WHERE clause</td><td>Yes</td><td>No</td><td>N/A</td></tr>
+      <tr><td>Logged?</td><td>Row-by-row (slow, full log)</td><td>Minimal logging (fast)</td><td>Minimal</td></tr>
+      <tr><td>Rollback?</td><td>Yes</td><td>DB-dependent (No in MySQL)</td><td>DB-dependent</td></tr>
+      <tr><td>Triggers fire?</td><td>Yes</td><td>No</td><td>No</td></tr>
+      <tr><td>Identity reset?</td><td>No</td><td>Yes (resets auto-increment)</td><td>N/A</td></tr>
+      <tr><td>Table structure</td><td>Kept</td><td>Kept</td><td>Removed</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- S21 -->
+<div class="section" id="s21">
+  <h2 class="section-title"><span class="num">21</span> CASE Expressions</h2>
+  <div class="calc-grid">
+    <div class="calc-card">
+      <h4>Simple CASE</h4>
+      <div class="code-block">SELECT name,
+  CASE status
+    WHEN 'A' THEN 'Active'
+    WHEN 'I' THEN 'Inactive'
+    ELSE 'Unknown'
+  END AS status_label
+FROM users;</div>
+    </div>
+    <div class="calc-card">
+      <h4>Searched CASE</h4>
+      <div class="code-block">SELECT name, salary,
+  CASE
+    WHEN salary >= 100000 THEN 'Senior'
+    WHEN salary >= 60000 THEN 'Mid'
+    WHEN salary >= 30000 THEN 'Junior'
+    ELSE 'Entry'
+  END AS band
+FROM employees;</div>
+      <p class="desc" style="margin-top:0.5rem;">Evaluated top-to-bottom. First matching WHEN wins. Order matters.</p>
+    </div>
+    <div class="calc-card">
+      <h4>CASE in Aggregation</h4>
+      <div class="code-block">-- Pivot: count orders by status
+SELECT
+  COUNT(CASE WHEN status = 'shipped'
+    THEN 1 END) AS shipped,
+  COUNT(CASE WHEN status = 'pending'
+    THEN 1 END) AS pending,
+  COUNT(CASE WHEN status = 'cancelled'
+    THEN 1 END) AS cancelled
+FROM orders;</div>
+      <span class="tag" style="margin-top:0.5rem;">manual pivot</span>
+    </div>
+    <div class="calc-card">
+      <h4>CASE in ORDER BY</h4>
+      <div class="code-block">-- Custom sort order
+SELECT * FROM tasks
+ORDER BY
+  CASE priority
+    WHEN 'critical' THEN 1
+    WHEN 'high' THEN 2
+    WHEN 'medium' THEN 3
+    WHEN 'low' THEN 4
+    ELSE 5
+  END;</div>
+    </div>
+  </div>
+</div>
+
+<!-- S22 -->
+<div class="section" id="s22">
+  <h2 class="section-title"><span class="num">22</span> String & Date Functions — Quick Reference</h2>
+  <div class="vs-row">
+    <div class="vs-box left">
+      <h4>String Functions</h4>
+      <div class="code-block" style="margin-top:0.5rem;">CONCAT('a', 'b')         → 'ab'
+SUBSTRING('hello', 1, 3) → 'hel'
+LENGTH('hello')          → 5
+UPPER('hello')           → 'HELLO'
+LOWER('HELLO')           → 'hello'
+TRIM('  hi  ')           → 'hi'
+REPLACE('abc', 'b', 'x') → 'axc'
+LEFT('hello', 3)         → 'hel'
+RIGHT('hello', 2)        → 'lo'
+CHARINDEX('l','hello')   → 3 (SQL Server)
+POSITION('l' IN 'hello') → 3 (Postgres)</div>
+    </div>
+    <div class="vs-box right">
+      <h4>Date Functions</h4>
+      <div class="code-block" style="margin-top:0.5rem;">CURRENT_DATE             → 2026-05-28
+CURRENT_TIMESTAMP        → 2026-05-28 14:30
+EXTRACT(YEAR FROM d)     → 2026
+DATE_TRUNC('month', d)   → 2026-05-01
+DATEADD(day, 7, d)       → (SQL Server)
+d + INTERVAL '7 days'    → (Postgres)
+DATEDIFF(day, d1, d2)    → integer
+TO_CHAR(d, 'YYYY-MM')   → '2026-05' (Postgres)
+FORMAT(d, 'yyyy-MM')     → '2026-05' (SQL Server)
+DATE_FORMAT(d, '%Y-%m')  → '2026-05' (MySQL)</div>
+    </div>
+  </div>
+  <div class="callout info">
+    <h4>Date syntax varies across databases</h4>
+    <p>PostgreSQL, MySQL, SQL Server, and Oracle all have different date function names. In interviews, mention which dialect you're using. Most interviewers accept any standard SQL.</p>
+  </div>
+</div>
+
+<!-- ==================== INTERVIEW Q&A ==================== -->
+
+<div class="part-divider">
+  <h1>Interview Q&A</h1>
+  <p>Scenario-Based Questions & Conceptual Deep Dives</p>
+</div>
+
+<!-- S23 -->
+<div class="section" id="s23">
+  <h2 class="section-title"><span class="num">23</span> Scenario-Based Questions</h2>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">01</span> Find the second highest salary <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p>Three approaches — know all three:</p>
+      <div class="code-block">-- Method 1: Subquery
+SELECT MAX(salary) FROM employees
+WHERE salary < (SELECT MAX(salary) FROM employees);
+
+-- Method 2: DENSE_RANK (handles ties correctly)
+WITH ranked AS (
+  SELECT salary,
+    DENSE_RANK() OVER (ORDER BY salary DESC) AS dr
+  FROM employees
+)
+SELECT DISTINCT salary FROM ranked WHERE dr = 2;
+
+-- Method 3: OFFSET (simple but fragile)
+SELECT DISTINCT salary FROM employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 1;</div>
+      <p><strong>Best answer:</strong> DENSE_RANK. Handles ties, easily extends to Nth highest, works per department with PARTITION BY.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">02</span> Find duplicate records <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <div class="code-block">-- Find duplicates
+SELECT email, COUNT(*) AS cnt
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;
+
+-- Delete duplicates (keep lowest id)
+DELETE FROM users
+WHERE id NOT IN (
+  SELECT MIN(id)
+  FROM users
+  GROUP BY email
+);
+
+-- Alternative with ROW_NUMBER:
+WITH dupes AS (
+  SELECT id,
+    ROW_NUMBER() OVER (
+      PARTITION BY email ORDER BY id
+    ) AS rn
+  FROM users
+)
+DELETE FROM users WHERE id IN (
+  SELECT id FROM dupes WHERE rn > 1
+);</div>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">03</span> Find customers who ordered every month in 2025 <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <div class="code-block">SELECT customer_id
+FROM orders
+WHERE order_date >= '2025-01-01'
+  AND order_date < '2026-01-01'
+GROUP BY customer_id
+HAVING COUNT(DISTINCT
+  DATE_TRUNC('month', order_date)
+) = 12;</div>
+      <p><strong>Key insight:</strong> COUNT(DISTINCT month) = 12 ensures all 12 months have at least one order. Using DATE_TRUNC normalizes dates to month level.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">04</span> Find consecutive login days per user <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p>Classic "gaps and islands" problem:</p>
+      <div class="code-block">WITH numbered AS (
+  SELECT user_id, login_date,
+    login_date - ROW_NUMBER() OVER (
+      PARTITION BY user_id
+      ORDER BY login_date
+    ) * INTERVAL '1 day' AS grp
+  FROM (
+    SELECT DISTINCT user_id, login_date::date
+      AS login_date
+    FROM logins
+  ) t
+)
+SELECT user_id,
+  MIN(login_date) AS streak_start,
+  MAX(login_date) AS streak_end,
+  COUNT(*) AS streak_days
+FROM numbered
+GROUP BY user_id, grp
+ORDER BY streak_days DESC;</div>
+      <p><strong>How it works:</strong> If dates are consecutive (Jan 1, 2, 3), subtracting ROW_NUMBER gives the same "grp" value (Dec 31, Dec 31, Dec 31). Non-consecutive dates produce different groups.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">05</span> Year-over-year growth per product <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <div class="code-block">WITH yearly AS (
+  SELECT product_id,
+    EXTRACT(YEAR FROM order_date) AS yr,
+    SUM(amount) AS total
+  FROM orders
+  GROUP BY product_id,
+    EXTRACT(YEAR FROM order_date)
+)
+SELECT product_id, yr, total,
+  LAG(total) OVER (
+    PARTITION BY product_id ORDER BY yr
+  ) AS prev_year,
+  ROUND(
+    (total - LAG(total) OVER (
+      PARTITION BY product_id ORDER BY yr
+    )) * 100.0
+    / NULLIF(LAG(total) OVER (
+      PARTITION BY product_id ORDER BY yr
+    ), 0)
+  , 2) AS yoy_growth_pct
+FROM yearly;</div>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">06</span> Pivot rows to columns (manual) <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p>Turn rows into columns without a PIVOT keyword:</p>
+      <div class="code-block">-- Data: (product, quarter, sales)
+-- Goal: one row per product, columns = Q1, Q2, Q3, Q4
+
+SELECT product,
+  SUM(CASE WHEN quarter = 'Q1'
+    THEN sales ELSE 0 END) AS q1,
+  SUM(CASE WHEN quarter = 'Q2'
+    THEN sales ELSE 0 END) AS q2,
+  SUM(CASE WHEN quarter = 'Q3'
+    THEN sales ELSE 0 END) AS q3,
+  SUM(CASE WHEN quarter = 'Q4'
+    THEN sales ELSE 0 END) AS q4
+FROM quarterly_sales
+GROUP BY product;</div>
+      <p>Works on every database. No need for vendor-specific PIVOT syntax.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">07</span> Find employees earning more than their manager <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <div class="code-block">SELECT e.name AS employee,
+       e.salary AS emp_salary,
+       m.name AS manager,
+       m.salary AS mgr_salary
+FROM employees e
+JOIN employees m ON e.manager_id = m.id
+WHERE e.salary > m.salary;</div>
+      <p>Self-join pattern. Join employees to itself using the manager_id relationship, then filter where employee earns more.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">08</span> Cumulative distribution / running percentage <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <div class="code-block">SELECT product, sales,
+  SUM(sales) OVER (ORDER BY sales DESC) AS cum_sales,
+  ROUND(
+    SUM(sales) OVER (ORDER BY sales DESC)
+    * 100.0 / SUM(sales) OVER ()
+  , 2) AS cum_pct
+FROM product_sales
+ORDER BY sales DESC;</div>
+      <p>Useful for Pareto / 80-20 analysis — find which products contribute to 80% of revenue.</p>
+    </div></div>
+  </div>
+</div>
+
+<!-- S24 -->
+<div class="section" id="s24">
+  <h2 class="section-title"><span class="num">24</span> Conceptual Q&A</h2>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">01</span> What is normalization? When would you denormalize? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>Normalization:</strong> Organizing tables to reduce redundancy. Common forms:</p>
+      <p><strong>1NF:</strong> No repeating groups. Each cell has one value.</p>
+      <p><strong>2NF:</strong> 1NF + no partial dependencies (every non-key column depends on the full primary key).</p>
+      <p><strong>3NF:</strong> 2NF + no transitive dependencies (non-key columns don't depend on other non-key columns).</p>
+      <p><strong>Denormalize when:</strong> Read-heavy workloads (reporting/analytics), reducing expensive JOINs, data warehousing (star/snowflake schemas), or when write frequency is low.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">02</span> ACID properties? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>Atomicity:</strong> Transaction is all-or-nothing. If any part fails, entire transaction rolls back.</p>
+      <p><strong>Consistency:</strong> Transaction moves DB from one valid state to another. Constraints are always satisfied.</p>
+      <p><strong>Isolation:</strong> Concurrent transactions don't interfere with each other. Each sees a consistent snapshot.</p>
+      <p><strong>Durability:</strong> Once committed, data survives crashes. Written to persistent storage.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">03</span> Primary Key vs Unique Key vs Foreign Key? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>Primary Key:</strong> Uniquely identifies each row. NOT NULL. One per table. Creates clustered index (SQL Server/MySQL).</p>
+      <p><strong>Unique Key:</strong> Ensures uniqueness. Allows one NULL (varies by DB). Multiple per table.</p>
+      <p><strong>Foreign Key:</strong> References another table's primary/unique key. Enforces referential integrity. Can have NULLs. Can have duplicates.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">04</span> What are views? Materialized views? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>View:</strong> Saved query — virtual table. No data stored. Re-executes every time you query it. Good for abstraction and access control.</p>
+      <p><strong>Materialized View:</strong> Saved query + cached results on disk. Faster reads but needs manual or scheduled refresh. Good for expensive aggregations in reporting.</p>
+      <div class="code-block">-- View:
+CREATE VIEW active_users AS
+SELECT * FROM users WHERE status = 'active';
+
+-- Materialized View (Postgres):
+CREATE MATERIALIZED VIEW monthly_stats AS
+SELECT month, SUM(sales) FROM orders GROUP BY month;
+
+-- Refresh:
+REFRESH MATERIALIZED VIEW monthly_stats;</div>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">05</span> Stored Procedure vs Function? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>Stored Procedure:</strong> Can perform actions (INSERT, UPDATE, DELETE). Doesn't need to return a value. Called with EXEC/CALL. Can have output parameters.</p>
+      <p><strong>Function:</strong> Must return a value. Can be used in SELECT/WHERE. Generally no side effects (no DML in most DBs). Called inline in queries.</p>
+      <p><strong>Interview version:</strong> Procedures DO things. Functions COMPUTE things.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">06</span> What is a transaction? Isolation levels? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p>A <strong>transaction</strong> is a group of operations treated as one unit. Either all succeed (COMMIT) or all fail (ROLLBACK).</p>
+      <div class="code-block">BEGIN TRANSACTION;
+  UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+  UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+COMMIT;</div>
+      <p><strong>Isolation Levels</strong> (from least to most strict):</p>
+      <p><strong>READ UNCOMMITTED:</strong> Can see uncommitted data (dirty reads). Fastest but riskiest.</p>
+      <p><strong>READ COMMITTED:</strong> Only sees committed data. Default in PostgreSQL, SQL Server, Oracle.</p>
+      <p><strong>REPEATABLE READ:</strong> Same query returns same data within a transaction. Default in MySQL.</p>
+      <p><strong>SERIALIZABLE:</strong> Full isolation — transactions execute as if sequential. Slowest but safest.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">07</span> Star Schema vs Snowflake Schema? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>Star Schema:</strong> Fact table at center, dimension tables directly connected. Denormalized dimensions. Fewer JOINs. Faster reads. Simpler queries.</p>
+      <p><strong>Snowflake Schema:</strong> Same as star but dimensions are normalized (split into sub-dimensions). More JOINs. Saves storage. More complex queries.</p>
+      <p><strong>In practice:</strong> Star schema is preferred for analytics / data warehousing. The storage savings from snowflake rarely justify the query complexity.</p>
+    </div></div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="this.parentElement.classList.toggle('open')"><span class="q-num">08</span> What are window frames? ROWS vs RANGE vs GROUPS? <span class="arrow">▼</span></div>
+    <div class="qa-a"><div class="qa-a-inner">
+      <p><strong>ROWS:</strong> Physical row count. <code>ROWS BETWEEN 2 PRECEDING AND CURRENT ROW</code> = exactly 3 rows.</p>
+      <p><strong>RANGE:</strong> Logical value range. Includes all rows with the same ORDER BY value (ties). Default behavior.</p>
+      <p><strong>GROUPS:</strong> Like RANGE but counts distinct groups. <code>GROUPS BETWEEN 1 PRECEDING AND CURRENT ROW</code> = current group + 1 preceding group of distinct values. (Postgres 11+, SQLite.)</p>
+      <p><strong>Interview takeaway:</strong> If you want a strict running total with no tie-related surprises, always specify <code>ROWS</code> explicitly.</p>
+    </div></div>
+  </div>
+</div>
+
+<!-- S25 -->
+<div class="section" id="s25">
+  <h2 class="section-title"><span class="num">25</span> Golden Rules</h2>
+
+  <div class="golden">
+    <h4>⚡ 10 Things to Remember Walking Into an SQL Interview</h4>
+    <ul>
+      <li><strong>NULL is not a value</strong> — it's unknown. <code>NULL = NULL</code> is not TRUE. Use IS NULL.</li>
+      <li><strong>WHERE runs before GROUP BY</strong> — you can't filter aggregates with WHERE. Use HAVING.</li>
+      <li><strong>Window functions can't go in WHERE</strong> — wrap in CTE or subquery first.</li>
+      <li><strong>COUNT(*) counts NULLs, COUNT(col) doesn't</strong> — know which you need.</li>
+      <li><strong>JOINs can multiply rows</strong> — one-to-many produces duplicates. Aggregate before or after, not both.</li>
+      <li><strong>NOT IN with NULLs returns empty</strong> — use NOT EXISTS or filter NULLs.</li>
+      <li><strong>Default window frame includes ties</strong> — specify ROWS for exact behavior.</li>
+      <li><strong>CTEs are for readability, not performance</strong> — they're usually inlined by the optimizer.</li>
+      <li><strong>Functions on columns kill indexes</strong> — <code>WHERE YEAR(col) = 2026</code> = full scan.</li>
+      <li><strong>Always state your SQL dialect</strong> — syntax varies across databases. Interviewers appreciate precision.</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /container -->
+</div><!-- /main -->
+
+<script>
+// Sidebar active state
+const sections = document.querySelectorAll('.section');
+const links = document.querySelectorAll('.sidebar a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector('.sidebar a[href="#' + e.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => { if (s.id) observer.observe(s); });
+
+// Mobile: close sidebar on link click
+links.forEach(l => l.addEventListener('click', () => {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.querySelector('.overlay').classList.remove('open');
+}));
+</script>
+</body>
+</html>
